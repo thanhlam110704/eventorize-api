@@ -1,0 +1,154 @@
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background: #ffffff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e6e6e6;
+      }
+      .header {
+        background-color: #0078d7;
+        color: #ffffff;
+        padding: 20px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+      .content {
+        padding: 20px;
+        line-height: 1.6;
+        color: #333333;
+      }
+      .content p {
+        margin: 10px 0;
+      }
+      .otp-container {
+        margin: 25px auto;
+        text-align: center;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 2px dashed #0078d7;
+      }
+      .otp-code {
+        font-size: 32px;
+        font-weight: bold;
+        letter-spacing: 5px;
+        color: #0078d7;
+        margin: 10px 0;
+        font-family: monospace;
+      }
+      .otp-label {
+        font-size: 14px;
+        color: #666666;
+        margin-bottom: 5px;
+      }
+      .cta-button {
+        display: block;
+        width: fit-content;
+        margin: 20px auto;
+        padding: 12px 30px;
+        background-color: #0078d7;
+        color: #ffffff !important;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+      }
+      .cta-button:hover {
+        background-color: #005bb5;
+      }
+      .footer {
+        text-align: center;
+        font-size: 12px;
+        color: #666666;
+        padding: 15px;
+        background-color: #f1f1f1;
+        border-top: 1px solid #dddddd;
+      }
+      .footer a {
+        color: #0078d7;
+        text-decoration: none;
+      }
+      .footer a:hover {
+        text-decoration: underline;
+      }
+      .expiry-notice {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #fff4e5;
+        border-radius: 5px;
+        color: #663c00;
+        font-size: 14px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header Section -->
+      <div class="header">Welcome to SEOer!</div>
+
+      <!-- Content Section -->
+      <div class="content">
+        <p>Hi <b>{{fullname}}</b>,</p>
+        <p>
+          Thank you for signing up for <b>SEOer</b>! 🎉 We are excited to have
+          you join our growing community.
+        </p>
+        <p>
+          To verify your account, please use the verification code below or
+          click the verification button:
+        </p>
+
+        <!-- OTP Display Section -->
+        <div class="otp-container">
+          <div class="otp-label">Your verification code is:</div>
+          <div class="otp-code">{{otp}}</div>
+        </div>
+
+        <!-- Call-to-Action Button -->
+        <a href="{{verification_link}}" target="_blank" class="cta-button">
+          Verify My Account
+        </a>
+
+        <!-- Expiry Notice -->
+        <div class="expiry-notice">
+          ⚠️ This verification code will expire in 10 minutes.
+        </div>
+
+        <p>
+          Verifying your account ensures that you can start exploring powerful
+          tools and resources tailored to elevate your SEO strategies. 🚀
+        </p>
+        <p>
+          If you did not create an account with <b>SEOer</b>, no action is
+          needed. Feel free to contact our support team for assistance.
+        </p>
+        <p>Looking forward to seeing your success,</p>
+        <p><b>The SEOer Team</b></p>
+      </div>
+
+      <!-- Footer Section -->
+      <div class="footer">
+        <p>
+          Need help? Contact our support team at
+          <a href="mailto:support@seoer.top">support@seoer.top</a>.
+        </p>
+        <p><a href="https://seoer.top" target="_blank">Visit Our Website</a></p>
+      </div>
+    </div>
+  </body>
+</html>
