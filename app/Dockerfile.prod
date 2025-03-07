@@ -2,7 +2,7 @@
 FROM python:3.12-alpine
 
 # Set the working directory.
-WORKDIR /app
+WORKDIR /opt/projects/app
 
 # Set environment variables to prevent Python from writing pyc files to disk
 # and ensure that Python output is logged directly to the terminal.
