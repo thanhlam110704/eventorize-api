@@ -1,14 +1,14 @@
-# Use an official lightweight Python image.
 FROM python:3.12-alpine
 
 # Set the working directory.
 WORKDIR /opt/projects/app
 
-# Set environment variables to prevent Python from writing pyc files to disk
-# and ensure that Python output is logged directly to the terminal.
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV HOST 0.0.0.0
+# Use the PORT environment variable from Render with a fallback
+ENV PORT=${PORT}
 
 # Install system dependencies
 RUN apk add --no-cache curl \
@@ -17,16 +17,15 @@ RUN apk add --no-cache curl \
     && rm -rf /root/.cache/pip
 
 # Copy the requirements file and install Python dependencies.
-# Use --no-cache-dir to prevent pip from saving the cache, which reduces image size.
-# After installing Python dependencies, remove the build dependencies to reduce the final image size (apk del .build-deps).
-# This is important because some dependencies are only needed for building wheel files and are not necessary afterwards.
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
     && apk del .build-deps
 
-EXPOSE 8000
-
 # Copy the rest of the application.
 COPY . .
 
-CMD ["uvicorn", "main:app", "--workers", "1", "--host", "0.0.0.0", "--port", "8000"]
+# Expose the port (this is documentation, not functionality)
+EXPOSE ${PORT}
+
+# Use the PORT environment variable in the command
+CMD ["sh", "-c", "uvicorn app.main:app --workers 1 --host 0.0.0.0 --port ${PORT}"]
