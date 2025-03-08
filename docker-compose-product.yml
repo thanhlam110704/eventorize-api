@@ -8,9 +8,11 @@ services:
     env_file:
       - .env/prod.env
       - .env/db.env
-    command: uvicorn main:app --host 0.0.0.0 --port ${PORT}
+    command: ["python", "run.py"]
     volumes:
       - ./logs/:/opt/projects/app/logs
+    ports:
+      - "${PORT}:${PORT}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${PORT}/v1/health/ping"]
       interval: 60s
