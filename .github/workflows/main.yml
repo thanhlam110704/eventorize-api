@@ -69,8 +69,9 @@ jobs:
         with:
           name: docker-image
 
-      - name: Deploy to production
-        uses: render-actions/deploy@v1
+      - name: Deploy to Render
+        uses: JorgeLNJunior/render-deploy@v1.3.2
         with:
-          service-id: ${{ secrets.SERVICE_ID }} 
-          api-key: ${{ secrets.RENDER_API_KEY }}
+          service_id: ${{ secrets.RENDER_SERVICE_ID }} 
+          api_key: ${{ secrets.RENDER_API_KEY }}
+        
