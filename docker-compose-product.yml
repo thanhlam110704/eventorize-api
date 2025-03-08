@@ -1,22 +1,47 @@
+version: '3.8'
+
 services:
   api:
-    build:
-      context: ./app
-      dockerfile: Dockerfile.prod
+    build: 
+      context: .
+      dockerfile: app/Dockerfile.prod
     image: eventorize-api:latest
     restart: always
     env_file:
       - .env/prod.env
-      - .env/db.env
-    command: ["python", "run.py"]
+      - .env/db.env  
+    command: uvicorn main:app --workers 1 --host 0.0.0.0 --port ${PORT}
     volumes:
       - ./logs/:/opt/projects/app/logs
     ports:
       - "${PORT}:${PORT}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/v1/health/ping"]
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "curl -s -f http://localhost:${PORT}/v1/health/ping || exit 1",
+        ]
       interval: 60s
       timeout: 3s
       retries: 3
     depends_on:
       - db
+
+  db:
+    image: mongo:8.0.4
+    restart: always
+    volumes:
+      - ./database:/data/db
+    command: --quiet
+    ports:
+      - "27017:27017"
+    env_file:
+      - .env/db.env
+    healthcheck:
+      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin --username $$MONGO_INITDB_ROOT_USERNAME --password $$MONGO_INITDB_ROOT_PASSWORD --quiet | grep 1
+      interval: 60s
+      timeout: 60s
+      retries: 6
+
