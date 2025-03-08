@@ -29,4 +29,4 @@ EXPOSE 8000
 # Copy the rest of the application.
 COPY . .
 
-CMD ["sh", "-c", "uvicorn main:app --workers 1 --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["uvicorn", "main:app", "--workers", "1", "--host", "0.0.0.0", "--port", "8000"]
