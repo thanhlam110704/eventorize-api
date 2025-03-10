@@ -3,6 +3,8 @@
 ## Introduction
 The Eventorize API is the backend service powering the Eventorize platform, a comprehensive event management solution. Built with FastAPI, this API provides the core functionalities needed to manage users, events, tickets, and more. The API is designed for high performance, scalability, and ease of integration, making it a reliable backbone for both the Eventorize frontend and any third-party applications.
 
+The deployment of the Eventorize API is managed using Render, ensuring seamless hosting with automatic scalability and high availability. Additionally, a CI/CD pipeline is implemented to automate testing, building, and deployment, enabling rapid development cycles and reducing downtime.
+
 This repository contains all the backend logic, database interactions, and API endpoints necessary to support the full range of features offered by the Eventorize platform.
 
 
@@ -17,6 +19,8 @@ This repository contains all the backend logic, database interactions, and API e
 - **RESTful API Design**: Follows RESTful principles, making it easy to integrate with various frontend applications and third-party services.
 - **Comprehensive Documentation**: Auto-generated API documentation with FastAPI's integrated Swagger and ReDoc, providing developers with detailed information on how to interact with the API.
 - **Scalable and Extensible**: Built with scalability in mind, using asynchronous programming to handle high traffic and offering easy extension for future features.
+- **Automated Deployment with Render**: The API is deployed using Render, ensuring a stable, scalable, and easily maintainable hosting environment with automatic deployments on code updates.
+- **CI/CD Integration**: Implements Continuous Integration and Continuous Deployment (CI/CD) to automate testing, building, and deployment processes. This ensures that every change is tested before deployment, reducing bugs and improving reliability.
 
 ## Getting Started
 
@@ -27,6 +31,7 @@ This repository contains all the backend logic, database interactions, and API e
 - [Git](https://git-scm.com/)
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
+- [Render](https://dashboard.render.com/)
 
 ### Cloning the Repository
 First, clone the repository from GitLab and navigate into the project directory:
