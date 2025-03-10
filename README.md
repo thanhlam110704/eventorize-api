@@ -31,7 +31,7 @@ This repository contains all the backend logic, database interactions, and API e
 ### Cloning the Repository
 First, clone the repository from GitLab and navigate into the project directory:
 ```bash
-git clone https://github.com/ellyx13/eventorize-api.git
+git clone https://github.com/thanhlam110704/eventorize-api.git
 cd eventorize-api
 ```
 
@@ -99,13 +99,13 @@ This script will build and start the Docker containers for the FastAPI applicati
 Once the containers are up and running, you can access the FastAPI application by navigating to:
 
 ```
-http://localhost:8005
+http://localhost:10000
 ```
 
 You can explore the automatically generated API documentation at:
 
-- Swagger UI: [http://localhost:8005/docs](http://localhost:8005/docs)
-- ReDoc: [http://localhost:8005/redoc](http://localhost:8005/redoc)
+- Swagger UI: [http://localhost:10000docs](http://localhost:10000/docs)
+- ReDoc: [http://localhost:10000/redoc](http://localhost:10000/redoc)
 
 ### Stopping the Project
 
