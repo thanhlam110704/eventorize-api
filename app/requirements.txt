@@ -1,0 +1,27 @@
+fastapi==0.111.1
+fastapi-sso==0.17.0
+uvicorn==0.30.3
+fastapi-restful==0.6.0
+loguru==0.7.2
+typing-inspect==0.9.0
+pydantic==2.8.2
+pydantic-settings==2.4.0
+motor==3.6.0
+bcrypt==4.2.0
+python-jose==3.3.0
+python-dateutil==2.9.0.post0
+validators==0.34.0
+python-slugify==8.0.4
+httpx==0.27.2
+httpx[http2]==0.27.2
+
+# For test
+pytest==8.3.2
+pytest-asyncio==0.23.8
+
+# For notifation bot
+pyTelegramBotAPI==4.17.0
+aiohttp==3.11.11 # For pyTelegramBotAPI
+
+# For cloudflare
+boto3==1.35.46

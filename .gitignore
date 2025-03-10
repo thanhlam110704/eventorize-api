@@ -1,0 +1,6 @@
+.env/
+logs/
+database/
+.pytest_cache/
+.vscode/
+*.ipynb
