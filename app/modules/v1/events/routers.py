@@ -34,6 +34,10 @@ class RoutersCBV:
             return results
         return schemas.PublicListResponse(**results)
 
+    @router.get("/events/export", status_code=200)
+    async def export_events(self):
+        return await event_controllers.export_events(commons=self.commons)
+
     @router.get("/events/{_id}", status_code=200, responses={200: {"model": schemas.PublicResponse, "description": "Get event success"}})
     async def get_detail(self, _id: ObjectIdStr, fields: str = None):
         results = await event_controllers.get_by_id(_id=_id, fields_limit=fields, commons=self.commons)

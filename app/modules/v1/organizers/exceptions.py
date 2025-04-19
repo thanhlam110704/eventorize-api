@@ -14,3 +14,7 @@ class ErrorCode(CoreErrorCode):
     @staticmethod
     def OnlyOneInputAllowed():
         return CustomException(type="organizers/info/only-one-input-allowed", status=400, title="Only One Input Allowed", detail="Provide only one of 'image_url' or 'file'.")
+
+    @staticmethod
+    def OrganizerHasEvents():
+        return CustomException(type="organizers/info/organizer-has-events", status=400, title="Organizer has events", detail="This organizer has events, so you cannot delete it.")

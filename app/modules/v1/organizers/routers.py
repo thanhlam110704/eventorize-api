@@ -34,6 +34,10 @@ class RoutersCBV:
             return results
         return schemas.ListResponse(**results)
 
+    @router.get("/organizers/export", status_code=200)
+    async def export_organizers(self):
+        return await organizer_controllers.export_organizers(commons=self.commons)
+
     @router.get("/organizers/{_id}", status_code=200, responses={200: {"model": schemas.Response, "description": "Get organizer success"}})
     async def get_detail(self, _id: ObjectIdStr, fields: str = None):
         results = await organizer_controllers.get_by_id(_id=_id, fields_limit=fields, commons=self.commons)

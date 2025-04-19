@@ -56,6 +56,9 @@ class TicketServices(BaseServices):
         ticket = await self.get_by_id(_id=ticket_id)
         return ticket["price"]
 
+    async def get_all_by_event_id(self, event_id: str, commons: CommonsDependencies = None) -> list:
+        return await self.get_all(query={"event_id": event_id}, commons=commons)
+
 
 ticket_crud = BaseCRUD(database_engine=app_engine, collection="tickets")
 ticket_services = TicketServices(service_name="tickets", crud=ticket_crud)

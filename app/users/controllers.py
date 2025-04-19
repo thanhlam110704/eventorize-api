@@ -2,6 +2,8 @@ from core.controllers import BaseControllers
 from core.schemas import CommonsDependencies
 from core.services import BaseServices
 from fastapi import UploadFile
+from modules.v1.orders.controllers import order_controllers
+from modules.v1.organizers.controllers import organizer_controllers
 from partners.v1.cloudflare.r2 import r2_services
 from utils import converter, validator
 
@@ -149,6 +151,21 @@ class UserControllers(BaseControllers):
             await self.service.increment_verify_email_attempts(user_id=user["_id"])
             raise UsersErrorCode.OTPInvalid()
         return await self.service.verify_email(user_id=user["_id"])
+
+    async def export_users(self, commons: CommonsDependencies) -> dict:
+        data = await self.get_all(limit=self.max_record_limit, commons=commons)
+        return await self.service.export_users(data=data["results"])
+
+    async def soft_delete_by_id(self, _id: str, commons: CommonsDependencies) -> dict:
+        # Check if that user id exists or not
+        await self.get_by_id(_id=_id, commons=commons)
+        organizer = await organizer_controllers.get_all(query={"created_by": _id}, commons=commons)
+        if organizer["total_items"] > 0:
+            raise UsersErrorCode.UserHasOrganizers()
+        order = await order_controllers.get_all(query={"created_by": _id}, commons=commons)
+        if order["total_items"] > 0:
+            raise UsersErrorCode.UserHasOrders()
+        return await self.service.soft_delete_by_id(_id=_id, commons=commons)
 
 
 user_controllers = UserControllers(controller_name="users", service=user_services)

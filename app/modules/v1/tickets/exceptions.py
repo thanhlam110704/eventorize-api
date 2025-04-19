@@ -64,3 +64,11 @@ class ErrorCode(CoreErrorCode):
     @staticmethod
     def InvalidCalculatePrice():
         return CustomException(type="tickets/info/invalid-price", status=400, title="Invalid price.", detail="The ticket price does not match the provided price.")
+
+    @staticmethod
+    def OwnerCannotBuyOwnTicket():
+        return CustomException(type="tickets/purchase/owner-restriction", status=400, title="Owner purchase restriction", detail="The creator of a ticket cannot purchase their own ticket.")
+
+    @staticmethod
+    def InvalidSaleDates():
+        return CustomException(type="tickets/info/invalid-sale-dates", status=400, title="Invalid sale dates.", detail="Ticket sale dates must be within the event start and end dates.")

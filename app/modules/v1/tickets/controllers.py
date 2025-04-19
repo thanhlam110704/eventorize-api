@@ -3,6 +3,7 @@ from core.schemas import CommonsDependencies
 from core.services import BaseServices
 from modules.v1.events.controllers import event_controllers
 from modules.v1.orders.controllers import order_controllers
+from utils import converter
 
 from . import schemas
 from .exceptions import ErrorCode as TicketErrorCode
@@ -19,9 +20,35 @@ class TicketControllers(BaseControllers):
         if data_ticket["event_id"] != event_id:
             raise TicketErrorCode.InvalidEventId()
 
+    async def verify_sale_dates(self, event_data, ticket_data):
+        # Convert string dates to datetime objects for event data
+        event_start = converter.convert_str_to_datetime_by_format(event_data["start_date"], "%Y-%m-%d %H:%M:%S")
+        event_end = converter.convert_str_to_datetime_by_format(event_data["end_date"], "%Y-%m-%d %H:%M:%S")
+        # Get datetime objects from ticket data (they're already datetime objects)
+        sale_start = ticket_data["start_sale_date"]
+        sale_end = ticket_data["end_sale_date"]
+        sale_start = sale_start.replace(tzinfo=None)
+        sale_end = sale_end.replace(tzinfo=None)
+        # Check if sale dates are within event dates
+        if sale_start < event_start:
+            return False
+
+        if sale_end > event_end:
+            return False
+
+        return True
+
+    async def verify_not_owner(self, ticket_id: str, user_id: str):
+        ticket = await self.get_by_id(_id=ticket_id)
+        if ticket["created_by"] == user_id:
+            raise TicketErrorCode.OwnerCannotBuyOwnTicket()
+        return ticket
+
     async def buy_ticket(self, event_id: str, data: schemas.BuyRequest, commons: CommonsDependencies) -> dict:
         data = data.model_dump()
+        user_id = self.get_current_user(commons)
         for order_item in data["order_items"]:
+            await self.verify_not_owner(ticket_id=order_item["ticket_id"], user_id=user_id)
             await self.verify_ticket(ticket_id=order_item["ticket_id"], event_id=event_id)
             await ticket_services.verify_date_sale(ticket_id=order_item["ticket_id"])
             await ticket_services.verify_available(ticket_id=order_item["ticket_id"], quantity=order_item["quantity"])
@@ -35,7 +62,10 @@ class TicketControllers(BaseControllers):
 
     async def create(self, event_id: str, data: schemas.CreateRequest, commons: CommonsDependencies) -> dict:
         data = data.model_dump()
-        await event_controllers.get_by_id(_id=event_id, commons=commons)
+        event = await event_controllers.get_by_id(_id=event_id, commons=commons)
+        valid = await self.verify_sale_dates(event_data=event, ticket_data=data)
+        if not valid:
+            raise TicketErrorCode.InvalidSaleDates()
         return await self.service.create(data=data, event_id=event_id, commons=commons)
 
     async def edit(self, ticket_id: str, event_id: str, data: schemas.EditRequest, commons: CommonsDependencies) -> dict:

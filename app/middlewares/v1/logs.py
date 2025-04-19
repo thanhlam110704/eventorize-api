@@ -9,7 +9,8 @@ from db.engine import engine_logs
 from fastapi import Request
 from loguru import logger
 from partners.v1.telegram.services import error_bot
-from starlette.background import BackgroundTask
+
+# from starlette.background import BackgroundTask
 from starlette.concurrency import iterate_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -115,7 +116,7 @@ class LogsMiddleware(BaseHTTPMiddleware):
         response.headers["X-Request-ID"] = log.request_id
 
         # Save log
-        response.background = BackgroundTask(log.save)
+        # response.background = BackgroundTask(log.save)
         # Don't send notify with url get/me
         if request.url.path in UNSEND_NOTIFY_ENDPOINTS:
             return response

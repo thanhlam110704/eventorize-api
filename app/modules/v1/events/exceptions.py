@@ -20,3 +20,7 @@ class ErrorCode(CoreErrorCode):
     @staticmethod
     def OnlyOneInputAllowed():
         return CustomException(type="events/info/only-one-input-allowed", status=400, title="Only One Input Allowed", detail="Provide only one of 'image_url' or 'file'.")
+
+    @staticmethod
+    def EventHasTickets():
+        return CustomException(type="events/info/event-has-tickets", status=400, title="Event has tickets", detail="This event has tickets, so you cannot delete it.")

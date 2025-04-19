@@ -1,11 +1,15 @@
+from io import BytesIO
 from typing import Any, Dict
+
+import xlsxwriter
 from auth.services import authentication_services
 from core.schemas import CommonsDependencies
 from core.services import BaseServices
 from db.base import BaseCRUD
 from db.engine import app_engine
+from fastapi import BackgroundTasks, Response
 from partners.v1.resend.services import user_mail_services
-from utils import calculator, value
+from utils import calculator, converter, value
 
 from . import models, schemas
 from .config import settings
@@ -19,7 +23,7 @@ class UserServices(BaseServices):
     async def get_by_email(self, email: str, ignore_error: bool = False) -> dict | None:
         results = await self.get_by_field(data=email, field_name="email", ignore_error=ignore_error)
         return results if results else None
-    
+
     async def delete_fields(self, _id: str, field_names: list[str]) -> None:
         await self.crud.delete_field_by_id(_id=_id, field_name=field_names)
 
@@ -70,6 +74,9 @@ class UserServices(BaseServices):
         if not item:
             raise UserErrorCode.Unauthorize()
         # Validate the provided password against the hashed value.
+        if not item.get("password"):
+            raise UserErrorCode.Unauthorize()
+        # Validate the provided password against the hashed value.
         is_valid_password = await authentication_services.validate_hash(value=data["password"], hashed_value=item["password"])
         if not is_valid_password:
             raise UserErrorCode.Unauthorize()
@@ -106,7 +113,7 @@ class UserServices(BaseServices):
         item["access_token"] = await authentication_services.create_access_token(user_id=item["_id"], user_type=item["type"])
         item["token_type"] = "bearer"
         return item
-    
+
     async def login_with_google(self, email: str, google_id: str) -> dict:
         # check if the user already exists
         user = await self.get_by_email(email=email)
@@ -154,20 +161,88 @@ class UserServices(BaseServices):
         data_update = {}
         data_update["verify_email_otp_attempts"] = current_attempts + 1
         return await self.update_by_id(_id=user_id, data=data_update)
-    
+
     async def update_password(self, user_id: str, password: str) -> dict:
         reset_fields = ["reset_password_otp", "reset_password_otp_expire", "reset_password_attempts"]
         data = {}
         data["password"] = await authentication_services.hash(value=password)
         await self.delete_fields(_id=user_id, field_names=reset_fields)
         return await self.edit(_id=user_id, data=data, check_modified=False, commons=None)
-    
+
     async def verify_email(self, user_id: str) -> dict:
         reset_fields = ["verify_email_otp", "verify_email_otp_expire", "verify_email_otp_attempts"]
         data_update = {}
         data_update["is_verified"] = True
         await self.delete_fields(_id=user_id, field_names=reset_fields)
         return await self.edit(_id=user_id, data=data_update)
+
+    async def get_total_users(self, start_date, end_date) -> int:
+        return await self.get_all(query={"is_verified": True, "created_at": {"$gte": start_date, "$lte": end_date}})
+
+    async def export_users(self, data) -> dict:
+        date = self.get_current_datetime()
+        date_str = converter.convert_datetime_to_str(date)
+        filename = f"{date_str}-ReportUsers.xlsx"
+
+        buffer = BytesIO()
+        workbook = xlsxwriter.Workbook(buffer)
+        worksheet = workbook.add_worksheet("Users")
+
+        # Define styles
+        header_format = workbook.add_format({"bold": True, "bg_color": "#4F81BD", "color": "white", "align": "center", "valign": "vcenter", "border": 1})
+
+        cell_format = workbook.add_format({"align": "left", "valign": "vcenter", "border": 1})
+
+        date_format = workbook.add_format({"align": "left", "valign": "vcenter", "border": 1, "num_format": "yyyy-mm-dd hh:mm:ss"})
+
+        # Define necessary fields
+        fields = ["fullname", "email", "type", "is_verified", "phone", "company", "position", "city", "created_at"]
+
+        # Write headers
+        for col, field in enumerate(fields):
+            worksheet.write(0, col, field.replace("_", " ").title(), header_format)
+            worksheet.set_column(col, col, 20)  # Set column width
+
+        # Write data
+        for row, user in enumerate(data, start=1):
+            for col, field in enumerate(fields):
+                value = user.get(field, "")
+
+                # Handle datetime objects
+                if field == "created_at" and value:
+                    worksheet.write(row, col, value, date_format)
+                # Handle boolean values
+                elif field == "is_verified":
+                    worksheet.write(row, col, "Yes" if value else "No", cell_format)
+                # Handle other values
+                else:
+                    worksheet.write(row, col, value, cell_format)
+
+        # Add a summary section
+        summary_row = len(data) + 3
+        worksheet.write(summary_row, 0, "Total Users:", header_format)
+        worksheet.write(summary_row, 1, len(data), cell_format)
+
+        worksheet.write(summary_row + 1, 0, "Admin Users:", header_format)
+        worksheet.write(summary_row + 1, 1, len([u for u in data if u.get("type") == "admin"]), cell_format)
+
+        worksheet.write(summary_row + 2, 0, "Regular Users:", header_format)
+        worksheet.write(summary_row + 2, 1, len([u for u in data if u.get("type") == "user"]), cell_format)
+
+        worksheet.write(summary_row + 3, 0, "Verified Users:", header_format)
+        worksheet.write(summary_row + 3, 1, len([u for u in data if u.get("is_verified")]), cell_format)
+
+        # Close workbook and return response
+        workbook.close()
+        buffer.seek(0)
+
+        return Response(
+            buffer.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+            background=BackgroundTasks(buffer.close()),
+        )
+
 
 user_crud = BaseCRUD(database_engine=app_engine, collection="users")
 user_services = UserServices(service_name="users", crud=user_crud)

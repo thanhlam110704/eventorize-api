@@ -11,7 +11,7 @@ class OrderItemsCRUD(BaseCRUD):
             _id (str): The ID of the document to be retrieved.
             fields_limit (str, optional): A comma-separated string of field names to include in the result.
                                         If None, all fields are included.
-            enhance_query (dict, optional): Additional query criteria to further refine the search.
+            query (dict, optional): Additional query criteria to further refine the search.
 
         Returns:
             dict | None: The retrieved document with `_id` converted to a string, or None if no document is found.
@@ -20,19 +20,27 @@ class OrderItemsCRUD(BaseCRUD):
         fields_limit = await self.build_field_projection(fields_limit=fields_limit)
 
         # Xây dựng điều kiện truy vấn
-        query = {"_id": ObjectId(_id)}
+        _query = {"_id": ObjectId(_id)}
         if query:
-            query.update(query)
+            _query.update(query)
 
         pipeline = [
-            {"$match": query},
+            {"$match": _query},
             {"$addFields": {"ConvertObjectId": {"$toObjectId": "$ticket_id"}}},
             {"$lookup": {"from": "tickets", "localField": "ConvertObjectId", "foreignField": "_id", "as": "ticketInfo"}},
             {"$unwind": {"path": "$ticketInfo", "preserveNullAndEmptyArrays": True}},  # Giữ giá trị null nếu không tìm thấy document tương ứng
-            {"$addFields": {"ticket_title": "$ticketInfo.title"}},
-            {"$addFields": {"_id": {"$toString": "$_id"}}},
-            {"$project": {"ticketInfo": 0, "ConvertObjectId": 0}},
+            # Convert event_id to ObjectId for the next lookup
+            {"$addFields": {"convertedEventId": {"$toObjectId": "$ticketInfo.event_id"}}},
+            # Lookup to events collection
+            {"$lookup": {"from": "events", "localField": "convertedEventId", "foreignField": "_id", "as": "eventInfo"}},
+            # Unwind the eventInfo array
+            {"$unwind": {"path": "$eventInfo", "preserveNullAndEmptyArrays": True}},
+            # Add the needed fields
+            {"$addFields": {"ticket_title": "$ticketInfo.title", "event_id": "$ticketInfo.event_id", "event_title": "$eventInfo.title", "_id": {"$toString": "$_id"}}},
+            # Remove the intermediate fields we don't need
+            {"$project": {"ticketInfo": 0, "eventInfo": 0, "ConvertObjectId": 0, "convertedEventId": 0}},
         ]
+
         # Thêm trường giới hạn nếu có
         if fields_limit:
             pipeline.append({"$project": fields_limit})

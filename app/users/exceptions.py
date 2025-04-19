@@ -18,15 +18,15 @@ class ErrorCode(CoreErrorCode):
     @staticmethod
     def OnlyOneInputAllowed():
         return CustomException(type="users/info/only-one-input-allowed", status=400, title="Only One Input Allowed", detail="Provide only one of 'image_url' or 'file'.")
-    
+
     @staticmethod
     def SSOIdMismatch():
         return CustomException(type="users/sso/invalid-sso", status=400, title="Invalid SSO Information", detail="The provided SSO credentials are invalid. Please try again.")
-    
+
     @staticmethod
     def EmailAlreadyVerified():
         return CustomException(type="auth/error/email-already-verified", status=400, title="Email Already Verified.", detail="The email address has already been verified.")
-    
+
     @staticmethod
     def OTPRequiredBeforeReset():
         return CustomException(type="auth/otp/required", status=400, title="OTP Required Before Reset", detail="You must request an OTP before resetting your password.")
@@ -44,3 +44,13 @@ class ErrorCode(CoreErrorCode):
     @staticmethod
     def OTPInvalid():
         return CustomException(type="auth/otp/invalid", status=400, title="Invalid OTP.", detail="The OTP you entered is incorrect. Please try again.")
+
+    @staticmethod
+    def UserHasOrganizers():
+        return CustomException(
+            type="users/info/user-has-organizers", status=400, title="User has organizers.", detail="This user has created one or more organizers. Please delete them first."
+        )
+
+    @staticmethod
+    def UserHasOrders():
+        return CustomException(type="users/info/user-has-orders", status=400, title="User has orders.", detail="This user has created one or more orders. Please delete them first.")

@@ -116,3 +116,74 @@ class OrdersCRUD(BaseCRUD):
         # Thực hiện pipeline
         results = await self.aggregate_by_pipeline(pipeline)
         return results[0] if results else None
+
+    async def get_top_buyer(self, start_date, end_date, limit: int = 3):
+        pipeline = [
+            {"$match": {"created_at": {"$gte": start_date, "$lte": end_date}, "status": "active", "deleted_at": None}},
+            {"$group": {"_id": "$created_by", "total_amount": {"$sum": "$total_amount"}, "orders": {"$sum": 1}}},  # Count number of orders
+            {"$sort": {"total_amount": -1}},
+            {"$limit": limit},
+            # First, add a stage to check what the _id (created_by) values look like
+            {"$addFields": {"original_id": "$_id"}},
+            # Convert the user ID to ObjectId
+            {"$addFields": {"convertedUserId": {"$toObjectId": "$_id"}}},
+            # Lookup to users collection
+            {"$lookup": {"from": "users", "localField": "convertedUserId", "foreignField": "_id", "as": "userInfo"}},
+            {"$unwind": {"path": "$userInfo", "preserveNullAndEmptyArrays": True}},
+            {
+                "$project": {
+                    "_id": 0,
+                    "user_id": "$_id",
+                    "user_name": "$userInfo.fullname",
+                    "user_email": "$userInfo.email",
+                    "total_amount": 1,
+                    "orders": 1,  # Include order count in the projection
+                }
+            },
+        ]
+
+        results = await self.aggregate_by_pipeline(pipeline)
+        return results
+
+    async def get_revenue(self, start_date, end_date):
+        pipeline = [
+            {"$match": {"created_at": {"$gte": start_date, "$lte": end_date}, "status": "active", "deleted_at": None}},
+            {"$group": {"_id": None, "total_amount": {"$sum": "$amount"}}},
+            {"$project": {"_id": 0, "total_amount": 1}},
+        ]
+
+        results = await self.aggregate_by_pipeline(pipeline)
+
+        # Handle the case where there might be no results
+        if results and len(results) > 0:
+            # Return in the expected format
+            return {"total_revenue": results[0]["total_amount"]}
+        else:
+            # Return zero if no revenue
+            return {"total_revenue": 0}
+
+    async def get_total_orders(self, start_date, end_date):
+        pipeline = [{"$match": {"created_at": {"$gte": start_date, "$lte": end_date}, "status": "active", "deleted_at": None}}, {"$count": "total_order"}]
+
+        results = await self.aggregate_by_pipeline(pipeline)
+
+        # Handle the case where there might be no results
+        if results and len(results) > 0:
+            return {"total_order": results[0]["total_order"]}
+        else:
+            return {"total_order": 0}
+
+    async def get_total_buyers(self, start_date, end_date):
+        pipeline = [
+            {"$match": {"created_at": {"$gte": start_date, "$lte": end_date}, "status": "active", "deleted_at": None}},
+            {"$group": {"_id": "$created_by"}},  # Group by created_by to get unique buyers
+            {"$count": "total_buyers"},  # Count the number of unique groups
+        ]
+
+        results = await self.aggregate_by_pipeline(pipeline)
+
+        # Handle the case where there might be no results
+        if results and len(results) > 0:
+            return {"total_buyers": results[0]["total_buyers"]}
+        else:
+            return {"total_buyers": 0}

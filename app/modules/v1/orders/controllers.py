@@ -57,5 +57,14 @@ class OrderControllers(BaseControllers):
         await self.service.soft_delete_by_id(_id, commons=commons)
         await order_item_controllers.soft_delete_by_order(_id, commons=commons)
 
+    async def export_orders(self, start_date, end_date, commons: CommonsDependencies):
+        query = {}
+        if start_date and end_date:
+            start_date_str = converter.convert_str_to_datetime_by_format(start_date)
+            end_date_str = converter.convert_str_to_datetime_by_format(end_date)
+            query["created_at"] = {"$gte": start_date_str, "$lte": end_date_str}
+        data = await super().get_all(query=query, limit=self.max_record_limit, commons=commons)
+        return await self.service.export_orders(data=data["results"])
+
 
 order_controllers = OrderControllers(controller_name="orders controllers", service=order_services)

@@ -2,6 +2,7 @@ from core.controllers import BaseControllers
 from core.schemas import CommonsDependencies
 from core.services import BaseServices
 from fastapi import UploadFile
+from modules.v1.events.services import event_services
 from partners.v1.cloudflare.r2 import r2_services
 from utils import converter
 
@@ -67,6 +68,17 @@ class OrganizerControllers(BaseControllers):
         await file.close()
         data_update["logo"] = await r2_services.upload_file(filename=filename, file_content=file_content)
         return await self.service.edit(_id=_id, data=data_update, commons=commons)
+
+    async def export_organizers(self, commons: CommonsDependencies) -> dict:
+        data = await self.get_all(limit=self.max_record_limit, commons=commons)
+        return await self.service.export_organizers(data=data["results"])
+
+    async def soft_delete_by_id(self, _id: str, commons: CommonsDependencies) -> None:
+        await self.get_by_id(_id=_id, commons=commons)
+        events = await event_services.get_event_by_organizer_id(organizer_id=_id, commons=commons)
+        if events["total_items"] > 0:
+            raise OrganizerErrorCode.OrganizerHasEvents()
+        await self.service.soft_delete_by_id(_id=_id, commons=commons)
 
 
 organizer_controllers = OrganizerControllers(controller_name="organizers", service=organizer_services)

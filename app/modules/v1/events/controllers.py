@@ -3,6 +3,7 @@ from core.schemas import CommonsDependencies
 from core.services import BaseServices
 from fastapi import UploadFile
 from modules.v1.organizers.controllers import organizer_controllers
+from modules.v1.tickets.services import ticket_services
 from partners.v1.cloudflare.r2 import r2_services
 from utils import converter
 
@@ -80,6 +81,17 @@ class EventControllers(BaseControllers):
         await file.close()
         data_update["thumbnail"] = await r2_services.upload_file(filename=filename, file_content=file_content)
         return await self.service.edit(_id=_id, data=data_update, commons=commons)
+
+    async def export_events(self, commons: CommonsDependencies = None) -> dict:
+        data = await self.get_all(limit=self.max_record_limit, commons=commons)
+        return await self.service.export_events(data=data["results"])
+
+    async def soft_delete_by_id(self, _id: str, commons: CommonsDependencies = None) -> None:
+        await self.get_by_id(_id=_id, commons=commons)
+        tickets = await ticket_services.get_all_by_event_id(event_id=_id, commons=commons)
+        if tickets["total_items"] > 0:
+            raise EventErrorCode.EventHasTickets()
+        return await self.service.soft_delete_by_id(_id=_id, commons=commons)
 
 
 event_controllers = EventControllers(controller_name="events", service=event_services)

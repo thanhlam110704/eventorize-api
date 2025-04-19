@@ -25,3 +25,8 @@ aiohttp==3.11.11 # For pyTelegramBotAPI
 
 # For cloudflare
 boto3==1.35.46
+
+
+pandas==2.2.2
+xlsxwriter==3.2.0
+python-multipart==0.0.20

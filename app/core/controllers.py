@@ -76,6 +76,12 @@ class BaseControllers:
         result = await self.service.soft_delete_by_id(_id=_id, ignore_error=ignore_error, commons=commons)
         return result
 
+    async def hard_delete_by_id(self, _id: str, ignore_error: bool = False, commons: CommonsDependencies = None) -> dict:
+        if not isinstance(self.service, BaseServices):
+            raise TypeError(NOT_DECLARED_SERVICE)
+        result = await self.service.hard_delete_by_id(_id=_id, ignore_error=ignore_error, commons=commons)
+        return result
+
     def get_current_user(self, commons: CommonsDependencies):
         return commons.current_user
 
