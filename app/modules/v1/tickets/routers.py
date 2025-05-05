@@ -15,7 +15,7 @@ router = InferringRouter(
 
 @cbv(router)
 class RoutersCBV:
-    commons: CommonsDependencies = Depends(CommonsDependencies)  # type: ignore
+    commons: CommonsDependencies = Depends(CommonsDependencies)  
 
     @router.get("/home/event/{event_id}/tickets", status_code=200, responses={200: {"model": schemas.ListResponse, "description": "Get tickets success"}})
     async def get_event_tickets(self, event_id: ObjectIdStr, pagination: PaginationParams = Depends()):

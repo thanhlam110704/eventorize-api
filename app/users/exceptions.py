@@ -21,7 +21,7 @@ class ErrorCode(CoreErrorCode):
 
     @staticmethod
     def SSOIdMismatch():
-        return CustomException(type="users/sso/invalid-sso", status=400, title="Invalid SSO Information", detail="The provided SSO credentials are invalid. Please try again.")
+        return CustomException(type="users/sso/invalid-sso", status=400, title="Invalid SSO Information", detail="The provided SSO credentials are invalid.")
 
     @staticmethod
     def EmailAlreadyVerified():
@@ -34,23 +34,23 @@ class ErrorCode(CoreErrorCode):
     @staticmethod
     def OTPAttemptsExceeded():
         return CustomException(
-            type="auth/otp/max-attempts", status=400, title="Maximum attempts exceeded.", detail="You have exceeded the maximum number of OTP verification attempts. Please request a new OTP."
+            type="auth/otp/max-attempts", status=400, title="Maximum attempts exceeded.", detail="You have exceeded the maximum number of OTP verification attempts. "
         )
 
     @staticmethod
     def OTPExpired():
-        return CustomException(type="auth/otp/expired", status=400, title="OTP expired.", detail="The OTP has expired. Please request a new one.")
+        return CustomException(type="auth/otp/expired", status=400, title="OTP expired.", detail="The OTP has expired.")
 
     @staticmethod
     def OTPInvalid():
-        return CustomException(type="auth/otp/invalid", status=400, title="Invalid OTP.", detail="The OTP you entered is incorrect. Please try again.")
+        return CustomException(type="auth/otp/invalid", status=400, title="Invalid OTP.", detail="The OTP you entered is incorrect.")
 
     @staticmethod
     def UserHasOrganizers():
         return CustomException(
-            type="users/info/user-has-organizers", status=400, title="User has organizers.", detail="This user has created one or more organizers. Please delete them first."
+            type="users/info/user-has-organizers", status=400, title="User has organizers.", detail="This user has created one or more organizers."
         )
 
     @staticmethod
     def UserHasOrders():
-        return CustomException(type="users/info/user-has-orders", status=400, title="User has orders.", detail="This user has created one or more orders. Please delete them first.")
+        return CustomException(type="users/info/user-has-orders", status=400, title="User has orders.", detail="This user has created one or more orders.")

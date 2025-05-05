@@ -18,7 +18,7 @@ class RoutersCBV:
 
     @router.get("/events", status_code=200, responses={200: {"model": schemas.PublicListResponse, "description": "Get events success"}})
     async def get_all(self, pagination: PaginationParams = Depends()):
-        search_in = ["title"]
+        search_in = ["title", "city"]
         results = await event_controllers.get_all(
             query=pagination.query,
             search=pagination.search,
