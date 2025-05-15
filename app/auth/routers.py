@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from fastapi_restful.cbv import cbv
 from fastapi_restful.inferring_router import InferringRouter
 from users import schemas as user_schemas
-
+from users.controllers import user_controllers
 from . import schemas
 from .controllers import authentication_controllers
 
@@ -32,6 +32,14 @@ class RoutersCBV:
         """
         redirect_url = await authentication_controllers.google_callback(request)
         return RedirectResponse(url=redirect_url)
+    
+    @router.post("/auth/google/android", status_code=200, responses={200: {"model": schemas.LoginResponse, "description": "Google SSO for Android"}})
+    async def google_sso_android(self, data: schemas.GoogleSSORequest):
+        """
+        Handle Google SSO for Android by processing user data and returning an access token.
+        """
+        result = await user_controllers.single_sign_on_with_google(data=data)
+        return schemas.LoginResponse(**result)
 
     @router.post("/auth/verify-email", status_code=200, responses={200: {"model": user_schemas.Response, "description": "Verify user's email address successfully"}})
     async def verify_email(self, data: schemas.VerifyEmailRequest):

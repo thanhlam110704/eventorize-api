@@ -29,6 +29,8 @@ class AuthenticationControllers(BaseControllers):
         user = await user_controllers.single_sign_on_with_google(data=data)
 
         return f"{settings.frontend_url}/auth-callback?access_token={user['access_token']}&token_type={user['token_type']}"
+    
+    
 
     async def verify_email(self, data: schemas.VerifyEmailRequest) -> dict:
         data = data.model_dump()
