@@ -34,7 +34,7 @@ class RoutersCBV:
         return RedirectResponse(url=redirect_url)
     
     @router.post("/auth/google/android", status_code=200, responses={200: {"model": user_schemas.LoginResponse, "description": "Google SSO for Android"}})
-    async def google_sso_android(self, data: schemas.GoogleSSORequest):
+    async def google_sso_android(self, data: user_schemas.GoogleSSORequest):
         """
         Handle Google SSO for Android by processing user data and returning an access token.
         """
