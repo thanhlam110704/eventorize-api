@@ -1,7 +1,6 @@
 from core.schemas import EmailStr
 from pydantic import BaseModel, Field, field_validator
 from users.config import settings
-
 from .exceptions import ErrorCode as AuthErrorCode
 
 
