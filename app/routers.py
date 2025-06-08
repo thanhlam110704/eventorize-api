@@ -13,6 +13,7 @@ from modules.v1.permissions import routers as permissions_routers
 from modules.v1.roles import routers as roles_routers
 from modules.v1.tasks import routers as tasks_routers
 from modules.v1.tickets import routers as tickets_routers
+from modules.v1.favorites import routers as favorites_routers
 from users import routers as users_routers
 
 api_routers = APIRouter()
@@ -57,3 +58,7 @@ api_routers.include_router(auth_routers.router)
 
 # Dashboard
 api_routers.include_router(dashboard_routers.router)
+
+# Favorites
+api_routers.include_router(favorites_routers.router)
+
