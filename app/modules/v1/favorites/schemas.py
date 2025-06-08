@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import List, Optional
 
-from core.schemas import ObjectIdStr, EmailStr, PhoneStr
+from core.schemas import ObjectIdStr
+from modules.v1.events import schemas as event_schemas
 from pydantic import BaseModel, Field
 
 
@@ -13,8 +14,7 @@ class CreateRequest(BaseModel):
 
 class Response(BaseModel):
     id: str = Field(alias="_id")
-    user_id: str
-    event_id: str
+    event: Optional[event_schemas.PublicResponse] = None
     created_at: datetime
     created_by: str
     updated_at: Optional[datetime] = None
@@ -25,3 +25,4 @@ class ListResponse(BaseModel):
     total_page: int
     records_per_page: int
     results: List[Response]
+

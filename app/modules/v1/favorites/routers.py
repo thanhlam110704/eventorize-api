@@ -5,7 +5,7 @@ from fastapi_restful.inferring_router import InferringRouter
 
 from . import schemas
 from .controllers import favorite_controllers
-
+from users.controllers import user_controllers
 router = InferringRouter(
     prefix="/v1",
     tags=["v1/favorites"],
@@ -16,26 +16,23 @@ router = InferringRouter(
 class RoutersCBV:
     commons: CommonsDependencies = Depends(CommonsDependencies)  
 
-    @router.get("/favorites", status_code=200, responses={200: {"model": schemas.ListResponse, "description": "Get favorites success"}})
-    async def get_all(self, pagination: PaginationParams = Depends()):
-        search_in = ["event_id"]
-        results = await favorite_controllers.get_all(
-            query=pagination.query,
-            search=pagination.search,
-            search_in=search_in,
+    @router.get("/favorites/my-events", status_code=200, responses={200: {"model": schemas.ListResponse, "description": "Get user favorite events"}})
+    async def get_my_favorite_events(self, pagination: PaginationParams = Depends()):
+        current_user = user_controllers.get_current_user(commons=self.commons)
+        results = await favorite_controllers.get_all_event_by_user(
+            user_id=current_user,
             page=pagination.page,
             limit=pagination.limit,
-            fields_limit=pagination.fields,
             sort_by=pagination.sort_by,
             order_by=pagination.order_by,
-            commons=self.commons,
+            commons=self.commons
         )
-        if pagination.fields:
-            return results
         return schemas.ListResponse(**results)
     
     @router.post("/favorites", status_code=201, responses={201: {"model": schemas.Response, "description": "Create favorite success"}})
-    async def create(self, data: schemas.CreateRequest):
+    async def create(self, event_id: ObjectIdStr):
+        current_user = user_controllers.get_current_user(commons=self.commons)
+        data = schemas.CreateRequest(event_id=event_id, user_id=current_user)
         result = await favorite_controllers.create(data=data, commons=self.commons)
         return schemas.Response(**result)
     
