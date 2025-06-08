@@ -29,7 +29,7 @@ class RoutersCBV:
         )
         return schemas.ListResponse(**results)
     
-    @router.post("/favorites", status_code=201, responses={201: {"model": schemas.Response, "description": "Create favorite success"}})
+    @router.post("/favorites/add-event/{event_id}", status_code=201, responses={201: {"model": schemas.Response, "description": "Create favorite success"}})
     async def create(self, event_id: ObjectIdStr):
         current_user = user_controllers.get_current_user(commons=self.commons)
         data = schemas.CreateRequest(event_id=event_id, user_id=current_user)
