@@ -4,46 +4,98 @@ from core.services import BaseServices
 from db.base import BaseCRUD
 from db.engine import app_engine
 from modules.v1.events.services import event_services
+from core.exceptions import ErrorCode
 from . import models, schemas
 
 class FavoriteServices(BaseServices):
     def __init__(self, service_name: str, crud: BaseCRUD = None) -> None:
         super().__init__(service_name, crud)
 
-    async def create(self, data: schemas.CreateRequest, commons: CommonsDependencies) -> dict:
-        data["created_by"] = self.get_current_user(commons=commons)
-        data["created_at"] = self.get_current_datetime()
-        data_save = models.Favorites(**data).model_dump()
-        result = await self.save(data=data_save)
-        event = await event_services.get_by_id(_id=data["event_id"], commons=commons)
-        result["event"] = event
+    
+    async def add_event(self, data: schemas.AddEventRequest, commons: CommonsDependencies) -> dict:
+        data = data.model_dump()
+        favorite = await self.get_by_field(data=data["user_id"],ignore_error=True, field_name="user_id", commons=commons)
+        if favorite:
+            list_event_id = favorite.get("list_event_id", [])
+            if data["event_id"] in list_event_id:
+                raise ErrorCode.Conflict(service_name=self.service_name, item=data["event_id"])
+            
+            updated_data = {
+                "list_event_id": list_event_id + [data["event_id"]],
+                "updated_at": self.get_current_datetime(),
+                "updated_by": data["user_id"]
+            }
+            result = await self.update_by_id( _id=favorite["_id"], data=updated_data, commons=commons)
+        else:
+            result = await self.create_favorite(data=data, commons=commons)
+
+        result["events"] = [
+            await event_services.get_by_id(_id=event_id, commons=commons)
+            for event_id in result.get("list_event_id", [])
+        ]
+        return result
+
+    async def create_favorite(self, data: schemas.AddEventRequest, commons: CommonsDependencies) -> dict:
+        data_save = {
+            "user_id": data["user_id"],
+            "list_event_id": [data["event_id"]], 
+            "created_by": self.get_current_user(commons=commons),
+            "created_at": self.get_current_datetime()
+        }
+        result = await self.save(data=models.Favorites(**data_save).model_dump())
         return result
     
-    async def get_all_event_by_user(self,user_id: str, page: int = 1, limit: int = 10, sort_by: str = "created_at", order_by: str = "desc",
+    
+    
+    async def get_all_event_by_user(self, user_id: str, page: int = 1, limit: int = 10, sort_by: str = "created_at", order_by: str = "desc",
         commons: CommonsDependencies = None) -> dict:
         query = {
             "user_id": user_id,
             "deleted_at": None
         }
-
-        results = await super().get_all(
+        results = await self.get_all(
             query=query,
             page=page,
             limit=limit,
             sort_by=sort_by,
             order_by=order_by,
+            include_deleted=False,
             commons=commons
         )
-
         for favorite in results["results"]:
-            event = await event_services.get_by_id(
-                _id=favorite.get("event_id"),
-                commons=commons
-            )
-            favorite["event"] = event 
-
+            favorite["events"] = [
+                await event_services.get_by_id(_id=event_id, commons=commons)
+                for event_id in favorite.get("list_event_id", [])
+            ]
         return results
 
+    async def remove_event(self, user_id: str, event_id: str, commons: CommonsDependencies) -> dict:
+        current_time = self.get_current_datetime()
+        favorite = await self.get_by_field(data=user_id, field_name="user_id", ignore_error=False, include_deleted=False, commons=commons)
+        
+        if not favorite or event_id not in favorite.get("list_event_id", []):
+            raise ErrorCode.NotFound(service_name=self.service_name, item=event_id)
+        
+      
+        updated_list_event_id = [eid for eid in favorite["list_event_id"] if eid != event_id]
+        updated_data = {
+            "list_event_id": updated_list_event_id,
+            "updated_at": current_time,
+            "updated_by": user_id
+        }
+      
+        result = await self.update_by_id(
+            _id=favorite["_id"],
+            data=updated_data,
+            ignore_error=False,
+            commons=commons
+        )
+        
+        result["events"] = [
+            await event_services.get_by_id(_id=eid, commons=commons)
+            for eid in updated_list_event_id
+        ]
+        return result
 
 favorite_crud = BaseCRUD(database_engine=app_engine, collection="favorites")
 favorite_services = FavoriteServices(service_name="favorites", crud=favorite_crud)

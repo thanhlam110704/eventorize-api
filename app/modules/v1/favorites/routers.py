@@ -30,13 +30,11 @@ class RoutersCBV:
         return schemas.ListResponse(**results)
     
     @router.post("/favorites/add-event/{event_id}", status_code=201, responses={201: {"model": schemas.Response, "description": "Create favorite success"}})
-    async def create(self, event_id: ObjectIdStr):
-        current_user = user_controllers.get_current_user(commons=self.commons)
-        data = schemas.CreateRequest(event_id=event_id, user_id=current_user)
-        result = await favorite_controllers.create(data=data, commons=self.commons)
+    async def add_event(self, event_id: ObjectIdStr):
+        result = await favorite_controllers.add_event(event_id = event_id, commons=self.commons)
         return schemas.Response(**result)
     
-    @router.delete("/favorites/{_id}", status_code=204)
-    async def delete(self, _id: ObjectIdStr):
-        await favorite_controllers.soft_delete_by_id(_id=_id, commons=self.commons)
+    @router.delete("/remove-event/{event_id}")
+    async def remove_event(self, event_id: str, commons: CommonsDependencies = Depends()):
+        return await favorite_controllers.remove_event(event_id=event_id, commons=self.commons)
     
