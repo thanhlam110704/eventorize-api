@@ -34,7 +34,7 @@ class RoutersCBV:
         result = await favorite_controllers.add_event(event_id = event_id, commons=self.commons)
         return schemas.Response(**result)
     
-    @router.delete("/remove-event/{event_id}")
+    @router.delete("/favorites/remove-event/{event_id}")
     async def remove_event(self, event_id: ObjectIdStr):
         return await favorite_controllers.remove_event(event_id=event_id, commons=self.commons)
     
