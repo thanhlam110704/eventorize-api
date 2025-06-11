@@ -1,4 +1,4 @@
-from core.schemas import CommonsDependencies, PaginationParams, ObjectIdStr
+from core.schemas import CommonsDependencies, ObjectIdStr
 from fastapi import Depends
 from fastapi_restful.cbv import cbv
 from fastapi_restful.inferring_router import InferringRouter
@@ -6,6 +6,7 @@ from fastapi_restful.inferring_router import InferringRouter
 from . import schemas
 from .controllers import favorite_controllers
 from users.controllers import user_controllers
+from modules.v1.events.controllers import event_controllers
 router = InferringRouter(
     prefix="/v1",
     tags=["v1/favorites"],
@@ -19,12 +20,21 @@ class RoutersCBV:
     @router.get("/favorites/my-events", status_code=200, responses={200: {"model": schemas.Response, "description": "Get user favorite events"}})
     async def get_my_favorite_events(self):
         current_user = user_controllers.get_current_user(commons=self.commons)
-        result = await favorite_controllers.get_by_field(data=current_user, field_name="user_id", commons=self.commons)
-        if result:
-            return schemas.Response(**result)
+        favorite = await favorite_controllers.get_by_field(data=current_user, field_name="user_id", commons=self.commons)
+        result = schemas.Response(
+            _id=str(favorite["_id"]),
+            user_id=favorite["user_id"],
+            events=[
+                await event_controllers.get_by_id(_id=event_id, commons=self.commons)
+                for event_id in favorite.get("list_event_id", [])
+            ],
+            created_at=favorite["created_at"],
+            created_by=favorite["created_by"],
+            updated_at=favorite.get("updated_at"),
+            updated_by=favorite.get("updated_by")
+        )
+        return result
        
-    
-    
     @router.post("/favorites/add-event/{event_id}", status_code=201, responses={201: {"model": schemas.Response, "description": "Create favorite success"}})
     async def add_event(self, event_id: ObjectIdStr):
         result = await favorite_controllers.add_event(event_id = event_id, commons=self.commons)

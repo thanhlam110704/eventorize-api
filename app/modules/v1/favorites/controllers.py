@@ -23,9 +23,6 @@ class FavoriteControllers(BaseControllers):
         event = await event_services.get_by_id(_id=event_id)
         if not event:
             raise ErrorCode.NotFound(service_name="events", item=event_id)
-    
-
-        
        
     async def remove_event(self, event_id: str, commons: CommonsDependencies) -> dict:
         current_user = self.get_current_user(commons=commons)

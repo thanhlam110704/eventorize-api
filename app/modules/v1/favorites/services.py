@@ -46,29 +46,6 @@ class FavoriteServices(BaseServices):
         return result
     
     
-    
-    async def get_all_event_by_user(self, user_id: str, page: int = 1, limit: int = 10, sort_by: str = "created_at", order_by: str = "desc",
-        commons: CommonsDependencies = None) -> dict:
-        query = {
-            "user_id": user_id,
-            "deleted_at": None
-        }
-        results = await self.get_all(
-            query=query,
-            page=page,
-            limit=limit,
-            sort_by=sort_by,
-            order_by=order_by,
-            include_deleted=False,
-            commons=commons
-        )
-        for favorite in results["results"]:
-            favorite["events"] = [
-                await event_services.get_by_id(_id=event_id, commons=commons)
-                for event_id in favorite.get("list_event_id", [])
-            ]
-        return results
-
     async def remove_event(self, data: schemas.AddEventRequest , commons: CommonsDependencies) -> dict:
         data = data.model_dump()
         current_time = self.get_current_datetime()
