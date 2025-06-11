@@ -21,8 +21,3 @@ class Response(BaseModel):
     updated_by: Optional[str] = None
 
 
-class ListResponse(BaseModel):
-    total_items: int
-    total_page: int
-    records_per_page: int
-    results: List[Response]
