@@ -16,13 +16,13 @@ router = InferringRouter(
 class RoutersCBV:
     commons: CommonsDependencies = Depends(CommonsDependencies)  
 
-    @router.get("/favorites/my-events", status_code=200, responses={200: {"model": schemas.ListResponse, "description": "Get user favorite events"}})
+    @router.get("/favorites/my-events", status_code=200, responses={200: {"model": schemas.Response, "description": "Get user favorite events"}})
     async def get_my_favorite_events(self):
         current_user = user_controllers.get_current_user(commons=self.commons)
         result = await favorite_controllers.get_by_field(data=current_user, field_name="user_id", commons=self.commons)
         if result:
-            return result
-        return schemas.Response(**result)
+            return schemas.Response(**result)
+       
     
     
     @router.post("/favorites/add-event/{event_id}", status_code=201, responses={201: {"model": schemas.Response, "description": "Create favorite success"}})
