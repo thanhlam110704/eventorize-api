@@ -81,7 +81,7 @@ class FavoriteServices(BaseServices):
         updated_data = {
             "list_event_id": updated_list_event_id,
             "updated_at": current_time,
-            "updated_by": user_id
+            "updated_by": data["user_id"]
         }
       
         result = await self.update_by_id(_id=favorite["_id"], data=updated_data, ignore_error=False, commons=commons)
