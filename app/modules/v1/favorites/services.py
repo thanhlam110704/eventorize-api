@@ -74,7 +74,7 @@ class FavoriteServices(BaseServices):
         current_time = self.get_current_datetime()
         favorite = await self.get_by_field(data=data["user_id"], field_name="user_id", ignore_error=False, include_deleted=False, commons=commons)
         
-        if not favorite or data["event_id"] not in favorite.get("list_event_id", []):
+        if data["event_id"] not in favorite.get("list_event_id", []):
             raise ErrorCode.NotFound(service_name=self.service_name, item=data["event_id"])
       
         updated_list_event_id = [eid for eid in favorite["list_event_id"] if eid != data["event_id"]]
