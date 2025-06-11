@@ -37,7 +37,8 @@ class FavoriteControllers(BaseControllers):
        
     async def remove_event(self, event_id: str, commons: CommonsDependencies) -> dict:
         current_user = self.get_current_user(commons=commons)
-        return await self.service.remove_event(user_id=current_user, event_id=event_id, commons=commons)
+        data = schemas.AddEventRequest(event_id=event_id, user_id=current_user)
+        return await self.service.remove_event(data=data, commons=commons)
     
 
 favorite_controllers = FavoriteControllers(controller_name="favorites", service=favorite_services)
