@@ -8,7 +8,7 @@ from partners.v1.cloudflare.r2 import r2_services
 from utils import converter
 from . import schemas
 from .config import settings
-from .exceptions import EventErrorCode
+from .exceptions import ErrorCode
 from .services import event_services
 
 class EventControllers(BaseControllers):
@@ -20,7 +20,7 @@ class EventControllers(BaseControllers):
         current_time = self.service.get_current_datetime()
         if converter.convert_str_to_datetime(event["end_date"]) < current_time:
             if not ignore_error:
-                raise EventErrorCode.EventAlreadyEnded(event["title"])
+                raise ErrorCode.EventAlreadyEnded(event["title"])
             return False
         return event
 
@@ -28,11 +28,11 @@ class EventControllers(BaseControllers):
         data = data.model_dump()
         await organizer_controllers.get_by_id(_id=data["organizer_id"], commons=commons)
         if file is None and data["thumbnail"] is None:
-            raise EventErrorCode.ImageOrFileRequired()
+            raise ErrorCode.ImageOrFileRequired()
         if file and data["thumbnail"]:
-            raise EventErrorCode.OnlyOneInputAllowed()
+            raise ErrorCode.OnlyOneInputAllowed()
         if file and file.size > settings.maximum_thumbnail_file_size:
-            raise EventErrorCode.FileTooLarge()
+            raise ErrorCode.FileTooLarge()
 
         if data["thumbnail"]:
             return await self.service.create(data=data, commons=commons)
@@ -58,11 +58,11 @@ class EventControllers(BaseControllers):
     async def edit_thumbnail(self, _id: str, file: UploadFile = None, image_url: str = None, commons: CommonsDependencies = None) -> dict:
         await self.get_by_id(_id=_id, commons=commons)
         if file is None and image_url is None:
-            raise EventErrorCode.ImageOrFileRequired()
+            raise ErrorCode.ImageOrFileRequired()
         if file and image_url:
-            raise EventErrorCode.OnlyOneInputAllowed()
+            raise ErrorCode.OnlyOneInputAllowed()
         if file and file.size > settings.maximum_thumbnail_file_size:
-            raise EventErrorCode.FileTooLarge()
+            raise ErrorCode.FileTooLarge()
 
         data_update = {}
         if image_url:
@@ -86,12 +86,12 @@ class EventControllers(BaseControllers):
         await self.get_by_id(_id=_id, commons=commons)
         tickets = await ticket_services.get_all_by_event_id(event_id=_id, commons=commons)
         if tickets["total_items"] > 0:
-            raise EventErrorCode.EventHasTickets()
+            raise ErrorCode.EventHasTickets()
         return await self.service.soft_delete_by_id(_id=_id, commons=commons)
 
     async def get_events_by_date_filter(self, date_filter: str, is_online: bool = None, city: str = None, page: int = 1, limit: int = 20, commons: CommonsDependencies = None) -> dict:
         if date_filter not in ["today", "tomorrow"]:
-            raise EventErrorCode.InvalidFilter()
+            raise ErrorCode.InvalidFilter()
         return await self.service.get_events_by_date_filter(date_filter=date_filter, is_online=is_online, city=city, page=page, limit=limit, commons=commons)
 
 event_controllers = EventControllers(controller_name="events", service=event_services)
