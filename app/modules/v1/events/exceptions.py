@@ -24,3 +24,7 @@ class ErrorCode(CoreErrorCode):
     @staticmethod
     def EventHasTickets():
         return CustomException(type="events/info/event-has-tickets", status=400, title="Event has tickets", detail="This event has tickets, so you cannot delete it.")
+
+    @staticmethod
+    def InvalidFilter():
+        return CustomException(type="events/info/invalid-filter", status=400, title="Invalid filter", detail="Filter is invalid.")

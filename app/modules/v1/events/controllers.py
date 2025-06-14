@@ -6,22 +6,18 @@ from modules.v1.organizers.controllers import organizer_controllers
 from modules.v1.tickets.services import ticket_services
 from partners.v1.cloudflare.r2 import r2_services
 from utils import converter
-
 from . import schemas
 from .config import settings
-from .exceptions import ErrorCode as EventErrorCode
+from .exceptions import EventErrorCode
 from .services import event_services
-
 
 class EventControllers(BaseControllers):
     def __init__(self, controller_name: str, service: BaseServices = None) -> None:
         super().__init__(controller_name, service)
 
     async def is_active(self, _id, ignore_error=False, commons: CommonsDependencies = None):
-        # get event and check if event is still active
         event = await event_controllers.get_by_id(_id=_id, commons=commons)
         current_time = self.service.get_current_datetime()
-
         if converter.convert_str_to_datetime(event["end_date"]) < current_time:
             if not ignore_error:
                 raise EventErrorCode.EventAlreadyEnded(event["title"])
@@ -93,5 +89,9 @@ class EventControllers(BaseControllers):
             raise EventErrorCode.EventHasTickets()
         return await self.service.soft_delete_by_id(_id=_id, commons=commons)
 
+    async def get_events_by_date_filter(self, date_filter: str, is_online: bool = None, city: str = None, page: int = 1, limit: int = 20, commons: CommonsDependencies = None) -> dict:
+        if date_filter not in ["today", "tomorrow"]:
+            raise EventErrorCode.InvalidFilter()
+        return await self.service.get_events_by_date_filter(date_filter=date_filter, is_online=is_online, city=city, page=page, limit=limit, commons=commons)
 
 event_controllers = EventControllers(controller_name="events", service=event_services)

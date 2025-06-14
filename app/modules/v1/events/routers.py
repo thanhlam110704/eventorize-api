@@ -2,7 +2,6 @@ from core.schemas import CommonsDependencies, ObjectIdStr, PaginationParams, Url
 from fastapi import Depends, File, UploadFile
 from fastapi_restful.cbv import cbv
 from fastapi_restful.inferring_router import InferringRouter
-
 from . import schemas
 from .controllers import event_controllers
 
@@ -11,28 +10,50 @@ router = InferringRouter(
     tags=["v1/events"],
 )
 
-
 @cbv(router)
 class RoutersCBV:
-    commons: CommonsDependencies = Depends(CommonsDependencies)  # type: ignore
+    commons: CommonsDependencies = Depends(CommonsDependencies)
 
     @router.get("/events", status_code=200, responses={200: {"model": schemas.PublicListResponse, "description": "Get events success"}})
-    async def get_all(self, pagination: PaginationParams = Depends()):
-        search_in = ["title", "city"]
-        results = await event_controllers.get_all(
-            query=pagination.query,
-            search=pagination.search,
-            search_in=search_in,
-            page=pagination.page,
-            limit=pagination.limit,
-            fields_limit=pagination.fields,
-            sort_by=pagination.sort_by,
-            order_by=pagination.order_by,
-            commons=self.commons,
-        )
-        if pagination.fields:
-            return results
-        return schemas.PublicListResponse(**results)
+    async def get_all(self, pagination: PaginationParams = Depends(), date_filter: str = None, is_online: bool = None, city: str = None):
+        search_in = ["title"]
+        query = pagination.query or {}
+
+        if is_online is not None:
+            query["is_online"] = is_online
+        if city is not None:
+            query["city"] = city
+
+        if date_filter is not None:
+            result = await event_controllers.get_events_by_date_filter(
+                date_filter=date_filter,
+                is_online=is_online,
+                city=city,
+                page=pagination.page,
+                limit=pagination.limit,
+                commons=self.commons
+            )
+            return schemas.PublicListResponse(
+                total_items=result["total_items"],
+                total_page=result["total_page"],
+                records_per_page=result["records_per_page"],
+                results=[schemas.PublicResponse(**item) for item in result["results"]]
+            )
+        else:
+            results = await event_controllers.get_all(
+                query=query,
+                search=pagination.search,
+                search_in=search_in,
+                page=pagination.page,
+                limit=pagination.limit,
+                fields_limit=pagination.fields,
+                sort_by=pagination.sort_by,
+                order_by=pagination.order_by,
+                commons=self.commons,
+            )
+            if pagination.fields:
+                return results
+            return schemas.PublicListResponse(**results)
 
     @router.get("/events/export", status_code=200)
     async def export_events(self):
