@@ -8,13 +8,26 @@ class EventCRUD(BaseCRUD):
         timezone = pytz.timezone('Asia/Ho_Chi_Minh')
         current_date = datetime.now(timezone).replace(hour=0, minute=0, second=0, microsecond=0)
         
-        start_date = current_date if date_filter == "today" else current_date + timedelta(days=1)
-        
-        if date_filter not in ["today", "tomorrow"]:
-            raise ValueError("Invalid date filter. Use 'today' or 'tomorrow'.")
+        if date_filter == "today":
+            start_date = current_date
+            end_date = current_date + timedelta(days=1)
+        elif date_filter == "tomorrow":
+            start_date = current_date + timedelta(days=1)
+            end_date = current_date + timedelta(days=2)
+        elif date_filter == "this_week":
+            # Tính ngày thứ Hai của tuần hiện tại
+            days_to_monday = (current_date.weekday() % 7)  # weekday(): 0 = Thứ Hai, 6 = Chủ Nhật
+            start_date = current_date - timedelta(days=days_to_monday)
+            # Tính ngày Chủ Nhật (cuối tuần)
+            end_date = start_date + timedelta(days=7)
+        else:
+            raise ValueError("Invalid date filter. Use 'today', 'tomorrow', or 'this_week'.")
 
         filter_conditions = {
-            "start_date": {"$gte": start_date.strftime("%Y-%m-%d %H:%M:%S")},
+            "start_date": {
+                "$gte": start_date.strftime("%Y-%m-%d %H:%M:%S"),
+                "$lt": end_date.strftime("%Y-%m-%d %H:%M:%S")
+            },
             "deleted_at": None
         }
 

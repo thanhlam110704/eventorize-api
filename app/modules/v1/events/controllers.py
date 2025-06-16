@@ -90,7 +90,7 @@ class EventControllers(BaseControllers):
         return await self.service.soft_delete_by_id(_id=_id, commons=commons)
 
     async def get_events_by_date_filter(self, date_filter: str, is_online: bool = None, city: str = None, page: int = 1, limit: int = 20, commons: CommonsDependencies = None) -> dict:
-        if date_filter not in ["today", "tomorrow"]:
+        if date_filter not in ["today", "tomorrow", "this_week"]:
             raise ErrorCode.InvalidFilter()
         return await self.service.get_events_by_date_filter(date_filter=date_filter, is_online=is_online, city=city, page=page, limit=limit, commons=commons)
 
