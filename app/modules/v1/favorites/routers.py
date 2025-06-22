@@ -5,6 +5,7 @@ from fastapi_restful.inferring_router import InferringRouter
 
 from . import schemas
 from .controllers import favorite_controllers
+from .services import favorite_services
 from users.controllers import user_controllers
 from modules.v1.events.controllers import event_controllers
 router = InferringRouter(
@@ -20,13 +21,28 @@ class RoutersCBV:
     @router.get("/favorites/my-events", status_code=200, responses={200: {"model": schemas.Response, "description": "Get user favorite events"}})
     async def get_my_favorite_events(self):
         current_user = user_controllers.get_current_user(commons=self.commons)
-        favorite = await favorite_controllers.get_by_field(data=current_user, field_name="user_id", commons=self.commons)
+        favorite = await favorite_controllers.get_by_field(
+            data=current_user,
+            field_name="user_id",
+            ignore_error=True,
+            commons=self.commons
+        )
+
+        if favorite is None:
+            favorite = await favorite_services.create_favorite(
+                user_id=current_user.id,
+                commons=self.commons,
+                event_id=None
+            )
+
         result = schemas.Response(
-            _id=str(favorite["_id"]),
+            id=str(favorite["_id"]),
             user_id=favorite["user_id"],
             events=[
-                await event_controllers.get_by_id(_id=event_id, commons=self.commons)
-                for event_id in favorite.get("list_event_id", [])
+                event for event in [
+                    await event_controllers.get_by_id(_id=event_id, commons=self.commons)
+                    for event_id in favorite.get("list_event_id", [])
+                ] if event is not None
             ],
             created_at=favorite["created_at"],
             created_by=favorite["created_by"],
