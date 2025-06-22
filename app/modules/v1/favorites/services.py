@@ -35,10 +35,20 @@ class FavoriteServices(BaseServices):
         ]
         return result
 
+    async def get_favorite(self, user_id: str, commons: CommonsDependencies) -> dict:
+        favorite = await self.get_by_field(data=user_id, field_name="user_id", ignore_error=True, commons=commons)
+        if favorite:
+            return favorite
+        
+        add_event_request = schemas.AddEventRequest(user_id=user_id, event_id=None)
+        return await self.create_favorite(data=add_event_request, commons=commons)
+    
+
     async def create_favorite(self, data: schemas.AddEventRequest, commons: CommonsDependencies) -> dict:
+        data = data.model_dump()
         data_save = {
             "user_id": data["user_id"],
-            "list_event_id": [data["event_id"]], 
+            "list_event_id": [data["event_id"]] if data["event_id"] else [], 
             "created_by": self.get_current_user(commons=commons),
             "created_at": self.get_current_datetime()
         }

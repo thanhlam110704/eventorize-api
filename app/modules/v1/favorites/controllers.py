@@ -7,12 +7,32 @@ from core.exceptions import ErrorCode
 from . import schemas
 from .services import favorite_services
 from modules.v1.events.services import event_services
+from modules.v1.events.controllers import event_controllers
 
 
 class FavoriteControllers(BaseControllers):
     def __init__(self, controller_name: str, service: BaseServices = None) -> None:
         super().__init__(controller_name, service)
 
+    async def get_my_favorite_events(self, commons: CommonsDependencies) -> dict:
+        current_user = self.get_current_user(commons=commons)
+        favorite = await self.service.get_favorite(user_id=current_user,commons=commons)
+        return  {
+            "_id":str(favorite["_id"]),
+            "user_id":favorite["user_id"],
+            "events":[
+                event for event in [
+                    await event_controllers.get_by_id(_id=event_id, commons=commons)
+                    for event_id in favorite.get("list_event_id", [])
+                ] if event is not None
+            ],
+            "created_at": favorite["created_at"],
+            "created_by": favorite["created_by"],
+            "updated_at": favorite.get("updated_at"),
+            "updated_by": favorite.get("updated_by")
+        }
+        
+    
     async def add_event(self, event_id: str, commons: CommonsDependencies) -> dict:
         await self.check_event_exists(event_id=event_id)
         current_user = self.get_current_user(commons=commons)
