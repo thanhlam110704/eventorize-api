@@ -30,7 +30,7 @@ class FavoriteServices(BaseServices):
             result = await self.create_favorite(data=data, commons=commons)
 
         result["events"] = [
-            await event_services.get_by_id(_id=event_id, commons=commons)
+            await event_services.get_by_id(_id=event_id)
             for event_id in result.get("list_event_id", [])
         ]
         return result

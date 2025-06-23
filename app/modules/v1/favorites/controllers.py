@@ -21,7 +21,7 @@ class FavoriteControllers(BaseControllers):
             "_id":str(favorite["_id"]),
             "user_id":favorite["user_id"],
             "events":[
-                await event_controllers.get_by_id(_id=event_id, commons=commons)
+                await event_controllers.get_by_id(_id=event_id)
                 for event_id in favorite.get("list_event_id", [])
             ],
             "created_at": favorite["created_at"],
