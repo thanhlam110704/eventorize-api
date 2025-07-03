@@ -20,3 +20,8 @@ class RoutersCBV:
     async def generate_qr(self, order_id: ObjectIdStr):
         result = await payment_controllers.generate_qr(order_id)
         return schemas.PayosGenerateResponse(**result)
+    
+    @router.get("/payments/payos/status", status_code=200)
+    async def get_payment_status(self, order_code: int):
+        result = await payment_controllers.get_payment_status(order_code)
+        return result
