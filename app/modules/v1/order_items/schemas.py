@@ -17,6 +17,9 @@ class Response(BaseModel):
     ticket_title: str
     event_id: str
     event_title: str
+    event_address: str 
+    event_start_date: datetime
+    event_end_date: datetime
     status: str
     quantity: int
     price: float
