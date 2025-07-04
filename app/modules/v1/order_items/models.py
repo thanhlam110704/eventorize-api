@@ -11,9 +11,6 @@ class OrderItems(BaseModel):
     status: Literal["active", "pending"]
     quantity: int
     price: float
-    event_address: str 
-    event_start_date: datetime
-    event_end_date: datetime
     created_at: datetime
     created_by: ObjectIdStr
     updated_at: Optional[datetime] = None
