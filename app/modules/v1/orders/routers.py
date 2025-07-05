@@ -18,7 +18,7 @@ class RoutersCBV:
 
     @router.get("/orders", status_code=200, responses={200: {"model": schemas.ListResponse, "description": "Get orders success"}})
     async def get_all(self, pagination: PaginationParams = Depends(), start_date: DateStr = None, end_date: DateStr = None):
-        search_in = ["user_name", "user_email", "user_phone", "order_no"]
+        search_in = ["user_name", "user_email", "user_phone", "order_no", "status"]
         results = await order_controllers.get_all(
             query=pagination.query,
             search=pagination.search,
