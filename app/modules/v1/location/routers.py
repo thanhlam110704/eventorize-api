@@ -11,7 +11,6 @@ router = InferringRouter(
     tags=["v1/location"],
 )
 
-
 @cbv(router)
 class RoutersCBV:
     commons: CommonsDependencies = Depends(CommonsDependencies)  # type: ignore

@@ -1,6 +1,5 @@
 from partners.v1.location.services import location_services
 
-
 class LocationControllers:
     async def get_province(self):
         return await location_services.get_province()
@@ -10,6 +9,5 @@ class LocationControllers:
 
     async def get_wards(self, district_code: str):
         return await location_services.get_wards(district_code=district_code)
-
 
 location_controllers = LocationControllers()
