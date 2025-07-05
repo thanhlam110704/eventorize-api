@@ -41,6 +41,7 @@ class OrderItemsCRUD(BaseCRUD):
                     "ticket_title": "$ticketInfo.title",
                     "event_id": "$ticketInfo.event_id",
                     "event_title": "$eventInfo.title",
+                    "event_thumbnail": "$eventInfo.thumbnail",
                     "event_address": "$eventInfo.address",
                     "event_start_date": "$eventInfo.start_date",
                     "event_end_date": "$eventInfo.end_date",
@@ -101,6 +102,7 @@ class OrderItemsCRUD(BaseCRUD):
                                 "ticket_title": "$ticketInfo.title",
                                 "event_id": "$ticketInfo.event_id",
                                 "event_title": "$eventInfo.title",
+                                "event_thumbnail": "$eventInfo.thumbnail",
                                 "event_address": "$eventInfo.address",
                                 "event_start_date": "$eventInfo.start_date",
                                 "event_end_date": "$eventInfo.end_date"
