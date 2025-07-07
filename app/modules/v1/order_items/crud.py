@@ -28,7 +28,7 @@ class OrderItemsCRUD(BaseCRUD):
             {"$match": _query},
             {"$addFields": {"ConvertObjectId": {"$toObjectId": "$ticket_id"}}},
             {"$lookup": {"from": "tickets", "localField": "ConvertObjectId", "foreignField": "_id", "as": "ticketInfo"}},
-            {"$unwind": {"path": "$ticketInfo", "preserveNullAndEmptyArrays": True}},  # Giữ giá trị null nếu không tìm thấy document tương ứng
+            {"$unwind": {"path": "$ticketInfo", "preserveNullAndEmptyArrays": True}},  
             # Convert event_id to ObjectId for the next lookup
             {"$addFields": {"convertedEventId": {"$toObjectId": "$ticketInfo.event_id"}}},
             # Lookup to events collection
