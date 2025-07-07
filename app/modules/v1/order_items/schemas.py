@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from core.schemas import ObjectIdStr
+from core.schemas import UrlStr
 from pydantic import BaseModel, Field
 
 
@@ -18,6 +19,7 @@ class Response(BaseModel):
     event_id: str
     event_title: str
     event_address: str 
+    event_thumbnail: UrlStr
     event_start_date: datetime
     event_end_date: datetime
     status: str
