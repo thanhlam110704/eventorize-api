@@ -13,5 +13,5 @@ class OrderItems(BaseModel):
     price: float
     created_at: datetime
     created_by: ObjectIdStr
-    updated_at: Optional[datetime] = None
+    updated_at: Optional[float] = None
     updated_by: Optional[str] = None
