@@ -20,12 +20,12 @@ class OrderItemsCRUD(BaseCRUD):
         fields_limit = await self.build_field_projection(fields_limit=fields_limit)
 
         # Xây dựng điều kiện truy vấn
-        _query = {"_id": ObjectId(_id)}
+        query = {"_id": ObjectId(_id)}
         if query:
-            _query.update(query)
+            query.update(query)
 
         pipeline = [
-            {"$match": _query},
+            {"$match": query},
             {"$addFields": {"ConvertObjectId": {"$toObjectId": "$ticket_id"}}},
             {"$lookup": {"from": "tickets", "localField": "ConvertObjectId", "foreignField": "_id", "as": "ticketInfo"}},
             {"$unwind": {"path": "$ticketInfo", "preserveNullAndEmptyArrays": True}},  

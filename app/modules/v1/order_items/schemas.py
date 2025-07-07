@@ -18,6 +18,7 @@ class Response(BaseModel):
     ticket_title: str
     event_id: str
     event_title: str
+    event_thumbnail: UrlStr
     event_address: str 
     event_start_date: datetime
     event_end_date: datetime
