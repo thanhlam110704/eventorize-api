@@ -36,16 +36,7 @@ class OrderItemsCRUD(BaseCRUD):
             # Unwind the eventInfo array
             {"$unwind": {"path": "$eventInfo", "preserveNullAndEmptyArrays": True}},
             # Add the needed fields
-            {"$addFields": {
-                "ticket_title": "$ticketInfo.title",
-                "event_id": "$ticketInfo.event_id",
-                "event_title": "$eventInfo.title",
-                "event_thumbnail": "$eventInfo.thumbnail",
-                "event_address": "$eventInfo.address",
-                "event_start_date": "$eventInfo.start_date",
-                "event_end_date": "$eventInfo.end_date",
-                "_id": {"$toString": "$_id"}
-            }},
+            {"$addFields": {"ticket_title": "$ticketInfo.title", "event_id": "$ticketInfo.event_id", "event_title": "$eventInfo.title", "_id": {"$toString": "$_id"}}},
             # Remove the intermediate fields we don't need
             {"$project": {"ticketInfo": 0, "eventInfo": 0, "ConvertObjectId": 0, "convertedEventId": 0}},
         ]
@@ -79,62 +70,48 @@ class OrderItemsCRUD(BaseCRUD):
         # Chuyển đổi boolean string thành giá trị boolean
         query = self.convert_bools(query)
 
+        # Xây dựng pipeline
         pipeline = [
             {"$match": query},
             {"$addFields": {"ConvertObjectId": {"$toObjectId": "$ticket_id"}}},
             {"$lookup": {"from": "tickets", "localField": "ConvertObjectId", "foreignField": "_id", "as": "ticketInfo"}},
-            {"$unwind": {"path": "$ticketInfo", "preserveNullAndEmptyArrays": True}},
+            {"$unwind": {"path": "$ticketInfo", "preserveNullAndEmptyArrays": True}},  # Giữ giá trị null nếu không tìm thấy document tương ứng
+            # Convert event_id to ObjectId for the next lookup
             {"$addFields": {"convertedEventId": {"$toObjectId": "$ticketInfo.event_id"}}},
+            # Lookup to events collection
             {"$lookup": {"from": "events", "localField": "convertedEventId", "foreignField": "_id", "as": "eventInfo"}},
+            # Unwind the eventInfo array
             {"$unwind": {"path": "$eventInfo", "preserveNullAndEmptyArrays": True}},
-            {"$replaceRoot": {
-                "newRoot": {
-                    "$mergeObjects": [
-                        "$$ROOT",
-                        {
-                            "ticket_title": "$ticketInfo.title",
-                            "event_id": "$ticketInfo.event_id",
-                            "event_title": "$eventInfo.title",
-                            "event_thumbnail": "$eventInfo.thumbnail",
-                            "event_address": "$eventInfo.address",
-                            "event_start_date": "$eventInfo.start_date",
-                            "event_end_date": "$eventInfo.end_date"
-                        }
-                    ]
-                }
-            }},
+            {"$replaceRoot": {"newRoot": {"$mergeObjects": ["$$ROOT", {"ticket_title": "$ticketInfo.title", "event_id": "$ticketInfo.event_id", "event_title": "$eventInfo.title"}]}}},
         ]
 
+        # Chèn `search_query` vào pipeline sau khi `lookup` hoàn tất
         if search_query:
             pipeline.append({"$match": search_query})
 
-        pipeline.extend([
-            {
-                "$facet": {
-                    "total_items": [{"$count": "count"}],
-                    "results": [
-                        {"$sort": sorting},
-                        {"$skip": (page - 1) * limit},
-                        {"$limit": limit},
-                        {"$project": {
-                            "ticketInfo": 0,
-                            "eventInfo": 0,
-                            "ConvertObjectId": 0,
-                            "convertedEventId": 0,
-                            **fields_limit
-                        }},
-                    ],
-                }
-            },
-            {"$addFields": {"total_items": {"$ifNull": [{"$arrayElemAt": ["$total_items.count", 0]}, 0]}}},
-            {
-                "$addFields": {
-                    "total_page": {"$cond": {"if": {"$eq": ["$total_items", 0]}, "then": 1, "else": {"$ceil": {"$divide": ["$total_items", limit]}}}},
-                    "records_per_page": limit,
-                }
-            },
-            {"$addFields": {"results": {"$map": {"input": "$results", "as": "result", "in": {"$mergeObjects": ["$$result", {"_id": {"$toString": "$$result._id"}}]}}}}},
-        ])
-
+        # Tiếp tục các bước phân trang, sắp xếp, và đếm kết quả
+        pipeline.extend(
+            [
+                {
+                    "$facet": {
+                        "total_items": [{"$count": "count"}],
+                        "results": [
+                            {"$sort": sorting},
+                            {"$skip": (page - 1) * limit},
+                            {"$limit": limit},
+                            {"$project": {"ticketInfo": 0, "eventInfo": 0, "convertedUserId": 0, "ConvertObjectId": 0, "convertedEventId": 0, **fields_limit}},
+                        ],
+                    }
+                },
+                {"$addFields": {"total_items": {"$ifNull": [{"$arrayElemAt": ["$total_items.count", 0]}, 0]}}},
+                {
+                    "$addFields": {
+                        "total_page": {"$cond": {"if": {"$eq": ["$total_items", 0]}, "then": 1, "else": {"$ceil": {"$divide": ["$total_items", limit]}}}},
+                        "records_per_page": limit,
+                    }
+                },
+                {"$addFields": {"results": {"$map": {"input": "$results", "as": "result", "in": {"$mergeObjects": ["$$result", {"_id": {"$toString": "$$result._id"}}]}}}}},
+            ]
+        )
         results = await self.aggregate_by_pipeline(pipeline)
         return results[0] if results else None
