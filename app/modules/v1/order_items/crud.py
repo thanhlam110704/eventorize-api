@@ -4,32 +4,38 @@ from db.base import BaseCRUD
 
 class OrderItemsCRUD(BaseCRUD):
     async def get_by_id(self, _id, fields_limit: list = None, query: dict = None) -> dict | None:
-        _id = ObjectId(_id)
+        """
+        Retrieves a document from the collection based on its ID, with optional field limitations and additional query.
+
+        Args:
+            _id (str): The ID of the document to be retrieved.
+            fields_limit (str, optional): A comma-separated string of field names to include in the result.
+                                        If None, all fields are included.
+            query (dict, optional): Additional query criteria to further refine the search.
+
+        Returns:
+            dict | None: The retrieved document with `_id` converted to a string, or None if no document is found.
+        """
+        # Chuyển đổi fields_limit thành định dạng dictionary với giá trị là 1 cho mỗi trường
         fields_limit = await self.build_field_projection(fields_limit=fields_limit)
-        _query = {"_id": _id}
+
+        # Xây dựng điều kiện truy vấn
+        _query = {"_id": ObjectId(_id)}
         if query:
             _query.update(query)
 
         pipeline = [
             {"$match": _query},
-            {"$addFields": {"ConvertObjectId": {
-                "$cond": {
-                    "if": {"$and": [{"$ne": ["$ticket_id", None]}, {"$regexMatch": {"input": "$ticket_id", "regex": "^[0-9a-fA-F]{24}$"}}]},
-                    "then": {"$toObjectId": "$ticket_id"},
-                    "else": None
-                }
-            }}},
+            {"$addFields": {"ConvertObjectId": {"$toObjectId": "$ticket_id"}}},
             {"$lookup": {"from": "tickets", "localField": "ConvertObjectId", "foreignField": "_id", "as": "ticketInfo"}},
-            {"$unwind": {"path": "$ticketInfo", "preserveNullAndEmptyArrays": True}},
-            {"$addFields": {"convertedEventId": {
-                "$cond": {
-                    "if": {"$and": [{"$ne": ["$ticketInfo.event_id", None]}, {"$regexMatch": {"input": "$ticketInfo.event_id", "regex": "^[0-9a-fA-F]{24}$"}}]},
-                    "then": {"$toObjectId": "$ticketInfo.event_id"},
-                    "else": None
-                }
-            }}},
+            {"$unwind": {"path": "$ticketInfo", "preserveNullAndEmptyArrays": True}},  # Giữ giá trị null nếu không tìm thấy document tương ứng
+            # Convert event_id to ObjectId for the next lookup
+            {"$addFields": {"convertedEventId": {"$toObjectId": "$ticketInfo.event_id"}}},
+            # Lookup to events collection
             {"$lookup": {"from": "events", "localField": "convertedEventId", "foreignField": "_id", "as": "eventInfo"}},
+            # Unwind the eventInfo array
             {"$unwind": {"path": "$eventInfo", "preserveNullAndEmptyArrays": True}},
+            # Add the needed fields
             {"$addFields": {
                 "ticket_title": "$ticketInfo.title",
                 "event_id": "$ticketInfo.event_id",
@@ -40,30 +46,37 @@ class OrderItemsCRUD(BaseCRUD):
                 "event_end_date": "$eventInfo.end_date",
                 "_id": {"$toString": "$_id"}
             }},
+            # Remove the intermediate fields we don't need
             {"$project": {"ticketInfo": 0, "eventInfo": 0, "ConvertObjectId": 0, "convertedEventId": 0}},
         ]
 
+        # Thêm trường giới hạn nếu có
         if fields_limit:
             pipeline.append({"$project": fields_limit})
 
+        # Thực thi pipeline
         results = await self.aggregate_by_pipeline(pipeline)
         return results[0] if results else None
 
     async def get_all(
         self, query: dict = None, search: str = None, search_in: list = None, page: int = None, limit: int = None, fields_limit: list = None, sort_by: str = None, order_by: str = None
     ) -> dict:
+        # Chuyển đổi fields_limit thành dictionary với giá trị 1 cho mỗi trường
         fields_limit = await self.build_field_projection(fields_limit=fields_limit)
         order_by = -1 if order_by == "desc" else 1
         sorting = {sort_by: order_by}
 
+        # Loại bỏ các tham số phân trang và sắp xếp phổ biến khỏi query dictionary
         common_params = {"sort_by", "page", "limit", "fields", "order_by"}
         query = {k: v for k, v in (query or {}).items() if k not in common_params}
 
+        # Xử lý tìm kiếm `$regex` nếu có `search`
         search_query = None
         if "search" in query:
             search = self.replace_special_chars(value=query.pop("search"))
             search_query = {"$or": [{search_key: {"$regex": f".*{search}.*", "$options": "i"}} for search_key in search_in]}
 
+        # Chuyển đổi boolean string thành giá trị boolean
         query = self.convert_bools(query)
 
         pipeline = [
