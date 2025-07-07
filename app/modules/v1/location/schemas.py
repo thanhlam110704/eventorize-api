@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel
 
@@ -8,7 +8,6 @@ class ProvinceResponse(BaseModel):
     code: int
     division_type: str
     codename: str
-  
 
 
 class ListProvinceResponse(BaseModel):
