@@ -26,7 +26,7 @@ class OrderItemsCRUD(BaseCRUD):
 
         pipeline = [
             {"$match": query},
-            {"$addFields": {"ConvertObjectId": {"$toObjectId": "$ticket_id"}}},
+            {"$addFields": {"convertedUserId": {"$toObjectId": "$created_by"}}},
             {"$lookup": {"from": "tickets", "localField": "ConvertObjectId", "foreignField": "_id", "as": "ticketInfo"}},
             {"$unwind": {"path": "$ticketInfo", "preserveNullAndEmptyArrays": True}},  
             # Convert event_id to ObjectId for the next lookup
