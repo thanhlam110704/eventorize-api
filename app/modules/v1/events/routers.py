@@ -16,7 +16,7 @@ class RoutersCBV:
 
     @router.get("/events", status_code=200, responses={200: {"model": schemas.PublicListResponse, "description": "Get events success"}})
     async def get_all(self, pagination: PaginationParams = Depends(), date_filter: str = None, is_online: bool = None, city: str = None):
-        search_in = ["title"]
+        search_in = ["title","organizer_id"]
         query = pagination.query or {}
 
         if is_online is not None:
