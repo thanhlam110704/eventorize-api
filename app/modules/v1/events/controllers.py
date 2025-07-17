@@ -15,6 +15,12 @@ class EventControllers(BaseControllers):
     def __init__(self, controller_name: str, service: BaseServices = None) -> None:
         super().__init__(controller_name, service)
 
+    async def get_all_events_by_organizer(
+        self, query=None, search=None, search_in=None, page=1, limit=20, fields_limit=None, sort_by="created_at", order_by="desc", include_deleted=False, organizer_id: str = None, commons=None
+    ):
+        query = {"organizer_id": organizer_id}
+        return await super().get_all(query, search, search_in, page, limit, fields_limit, sort_by, order_by, include_deleted, commons)
+
     async def is_active(self, _id, ignore_error=False, commons: CommonsDependencies = None):
         event = await event_controllers.get_by_id(_id=_id, commons=commons)
         current_time = self.service.get_current_datetime()

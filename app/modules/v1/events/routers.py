@@ -16,7 +16,7 @@ class RoutersCBV:
 
     @router.get("/events", status_code=200, responses={200: {"model": schemas.PublicListResponse, "description": "Get events success"}})
     async def get_all(self, pagination: PaginationParams = Depends(), date_filter: str = None, is_online: bool = None, city: str = None):
-        search_in = ["title","organizer_id"]
+        search_in = ["title"]
         query = pagination.query or {}
 
         if is_online is not None:
@@ -54,6 +54,26 @@ class RoutersCBV:
             if pagination.fields:
                 return results
             return schemas.PublicListResponse(**results)
+        
+    @router.get("/organizer/{organizer_id}/events", status_code=200, responses={200: {"model": schemas.PublicListResponse, "description": "Get events by organizer success"}})
+    async def get_events_by_organizer(self, organizer_id: ObjectIdStr, pagination: PaginationParams = Depends()):
+        search_in = ["title"]
+        results = await event_controllers.get_all_events_by_organizer(
+            query=pagination.query,
+            search=pagination.search,
+            search_in=search_in,
+            page=pagination.page,
+            limit=pagination.limit,
+            fields_limit=pagination.fields,
+            sort_by=pagination.sort_by,
+            order_by=pagination.order_by,
+            organizer_id=organizer_id,
+            commons=self.commons,
+        )
+        if pagination.fields:
+            return results
+        return schemas.ListResponse(**results)
+
 
     @router.get("/events/export", status_code=200)
     async def export_events(self):
