@@ -5,9 +5,6 @@ from fastapi_restful.inferring_router import InferringRouter
 
 from . import schemas
 from .controllers import favorite_controllers
-from .services import favorite_services
-from users.controllers import user_controllers
-from modules.v1.events.controllers import event_controllers
 router = InferringRouter(
     prefix="/v1",
     tags=["v1/favorites"],
