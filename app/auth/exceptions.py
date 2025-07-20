@@ -5,12 +5,12 @@ from exceptions import CustomException
 class ErrorCode(CoreErrorCode):
     @staticmethod
     def Forbidden():
-        return CustomException(type="core/warning/forbidden", status=403, title="Forbidden.", detail="You do not have permission to access this resource.")
+        return CustomException(type="core/warning/forbidden", status=403, title="Truy cập bị cấm.", detail="Bạn không có quyền truy cập vào tài nguyên này.")
 
     @staticmethod
     def InvalidPasswordLength():
-        return CustomException(type="auth/info/invalid-password-length", status=400, title="Invalid password length.", detail="The password must be at least 8 characters long.")
+        return CustomException(type="auth/info/invalid-password-length", status=400, title="Độ dài mật khẩu không hợp lệ.", detail="Mật khẩu phải có ít nhất 8 ký tự.")
 
     @staticmethod
     def InvalidOtpLength():
-        return CustomException(type="auth/info/invalid-otp-length", status=400, title="Invalid otp length.", detail="The otp must have 6 characters.")
+        return CustomException(type="auth/info/invalid-otp-length", status=400, title="Độ dài OTP không hợp lệ.", detail="Mã OTP phải có 6 ký tự.")

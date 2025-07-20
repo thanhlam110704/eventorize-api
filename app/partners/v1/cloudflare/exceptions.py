@@ -5,4 +5,4 @@ from exceptions import CustomException
 class R2ErrorCode(CoreErrorCode):
     @staticmethod
     def UploadFailed():
-        return CustomException(type="r2/error/upload", status=500, title="Error occurred during upload", detail="An unexpected error occurred while uploading the file")
+        return CustomException(type="r2/error/upload", status=500, title="Lỗi tải lên.", detail="Đã xảy ra lỗi không mong muốn khi tải tệp lên.")

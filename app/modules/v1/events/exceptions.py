@@ -6,25 +6,25 @@ class ErrorCode(CoreErrorCode):
     @staticmethod
     def EventAlreadyEnded(title_event):
         return CustomException(
-            type="events/info/event-already-ended", status=400, title="Event has already ended", detail=f"Event '{title_event}' has already ended, so you cannot create an agenda for it."
+            type="events/info/event-already-ended", status=400, title="Sự kiện đã kết thúc.", detail=f"Sự kiện '{title_event}' đã kết thúc, bạn không thể tạo chương trình cho nó."
         )
 
     @staticmethod
     def FileTooLarge():
-        return CustomException(type="events/info/file-too-large", status=413, title="File too large.", detail="The uploaded file exceeds the maximum size of 5MB.")
+        return CustomException(type="events/info/file-too-large", status=413, title="Tệp quá lớn.", detail="Tệp tải lên vượt quá kích thước tối đa 5MB.")
 
     @staticmethod
     def ImageOrFileRequired():
-        return CustomException(type="events/info/image-or-file-required", status=400, title="Image or File Required", detail="Either 'image_url' or 'file' must be provided.")
+        return CustomException(type="events/info/image-or-file-required", status=400, title="Yêu cầu hình ảnh hoặc tệp.", detail="Phải cung cấp 'image_url' hoặc 'file'.")
 
     @staticmethod
     def OnlyOneInputAllowed():
-        return CustomException(type="events/info/only-one-input-allowed", status=400, title="Only One Input Allowed", detail="Provide only one of 'image_url' or 'file'.")
+        return CustomException(type="events/info/only-one-input-allowed", status=400, title="Chỉ được cung cấp một đầu vào.", detail="Chỉ cung cấp một trong hai: 'image_url' hoặc 'file'.")
 
     @staticmethod
     def EventHasTickets():
-        return CustomException(type="events/info/event-has-tickets", status=400, title="Event has tickets", detail="This event has tickets, so you cannot delete it.")
+        return CustomException(type="events/info/event-has-tickets", status=400, title="Sự kiện đã có vé.", detail="Sự kiện này có vé, bạn không thể xóa nó.")
 
     @staticmethod
     def InvalidFilter():
-        return CustomException(type="events/info/invalid-filter", status=400, title="Invalid filter", detail="Filter is invalid.")
+        return CustomException(type="events/info/invalid-filter", status=400, title="Bộ lọc không hợp lệ.", detail="Bộ lọc không đúng.")
